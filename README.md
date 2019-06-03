@@ -4,7 +4,37 @@ See blog post,
 to learn about using this library.
 > A functional, object-oriented approach for working with sequences and collections. Also similar to Spark RDDs and Java Streams. Hope you find they simplify your code by providing a plethora of common algorithms for working with sequences and collections.
 
-## Example
+## Stephen's Direct from Scala example
+
+```scala
+val a = ((1 to 50)
+  .map(_ * 4)
+  .filter( _ <= 170)
+  .filter(_.toString.length == 2)
+  .filter (_ % 20 == 0)
+  .zipWithIndex
+  .map{ case(x,n) => s"Result[$n]=$x"}
+  .mkString("  .. "))
+
+  a: String = Result[0]=20  .. Result[1]=40  .. Result[2]=60  .. Result[3]=80
+```
+```python
+from scalaps import *
+a = (Seq(range(1,51))
+     .map(lambda x: x * 4)
+     .filter(lambda x: x <= 170)
+     .filter(lambda x: len(str(x)) == 2)
+     .filter( lambda x: x % 20 ==0)
+     .enumerate()
+     .map(lambda x: 'Result[%d]=%s' %(x[0],x[1]))
+     .mkstring(' .. '))
+print(a)
+  
+  # Result[0]=20  .. Result[1]=40  .. Result[2]=60  .. Result[3]=80
+```
+
+
+## Original Example
 ```python
 from scalaps import ScSeq
 

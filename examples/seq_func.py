@@ -2,22 +2,22 @@
 Example of reconstructing a lazy sequence so that we can realize it multiple times
 """
 
-from scalaps import ScSeq
+from scalaps import Seq
 
 
 def create_seq():
-    return (ScSeq(range(1000))
+    return (Seq(range(1000))
             .map(lambda x: x * 10)
             .filter(lambda x: x % 70 == 0)
-            .flat_map(lambda x: range(x)))
+            .flatmap(lambda x: range(x)))
 
 
-create_seq().take(3).for_each(print)
+create_seq().take(3).foreach(print)
 # > 0
 # > 1
 # > 2
 
-create_seq().last(3).for_each(print)
+create_seq().last(3).foreach(print)
 # > 9937
 # > 9938
 # > 9939

@@ -8,7 +8,7 @@ https://towardsdatascience.com/interactively-exploring-reddit-posts-using-basic-
 import urllib.request
 from collections import namedtuple
 
-from scalaps import ScSeq
+from scalaps import Seq
 
 with urllib.request.urlopen('https://matthagy.com/RS_2018-01-sample.csv') as response:
     text = response.read().decode()
@@ -25,11 +25,11 @@ def parse_post(line: str) -> Post:
     return Post(subreddit, author, title, int(score))
 
 
-posts = ScSeq(text.strip().split('\n')).map(parse_post).to_frozen_list()
+posts = Seq(text.strip().split('\n')).map(parse_post).tofrozenlist()
 print(posts.length, 'posts')
 # > 11347 posts
 print()
-posts.take(5).for_each(lambda x: print(str(x)[:100]))
+posts.take(5).foreach(lambda x: print(str(x)[:100]))
 # > Post(subreddit='MarioAI', author='nicolasrene', title='recreation of Mario facing left since i haven
 # > Post(subreddit='u_seksualios', author='seksualios', title='Seksuali gundanti ištvirkėlė Alektra Blue
 # > Post(subreddit='Cuphead', author='[deleted]', title='Just finished Cuphead in an hour and fifteen mi
@@ -47,12 +47,12 @@ print()
 print('The five highest volume subreddits are:')
 (posts
  .map('subreddit')
- .value_counts()
+ .valuecounts()
  .items()
- .sort_by(1)
+ .sortby(1)
  .reverse()
  .take(5)
- .for_each(print))
+ .foreach(print))
 
 # > ('AskReddit', 235)
 # > ('AutoNewspaper', 230)
@@ -79,7 +79,7 @@ def generate_post_words(post: Post):
 def extract_word_counts(subreddit_word_counts):
     return (subreddit_word_counts
             .map(lambda subreddit_word_count: (subreddit_word_count[0][1], subreddit_word_count[1]))
-            .to_dict())
+            .todict())
 
 
 def show_subreddit_word_counts(subreddit_word_counts):
@@ -87,28 +87,28 @@ def show_subreddit_word_counts(subreddit_word_counts):
     total_word_count = word_counts.values().sum()
     print(subreddit, 'w/', total_word_count, 'total words and', word_counts.length, 'unique words')
 
-    word_freqs = word_counts.map_values(lambda count: count / total_word_count)
+    word_freqs = word_counts.mapvalues(lambda count: count / total_word_count)
     (word_freqs
      .items()
-     .sort_by(1)
+     .sortby(1)
      .reverse()
      .take(5)
-     .for_each(lambda word_freq: print(f'  {word_freq[0]}: {round(word_freq[1], 5)}')))
+     .foreach(lambda word_freq: print(f'  {word_freq[0]}: {round(word_freq[1], 5)}')))
 
     print('')
 
 
 (posts
- .flat_map(generate_post_words)
- .value_counts()
+ .flatmap(generate_post_words)
+ .valuecounts()
  .items()
- .group_by(lambda subreddit_word_count: subreddit_word_count[0][0])
- .map_values(extract_word_counts)
+ .groupby(lambda subreddit_word_count: subreddit_word_count[0][0])
+ .mapvalues(extract_word_counts)
  .items()
- .sort_by(lambda subreddit_word_counts: subreddit_word_counts[1].values().sum())
+ .sortby(lambda subreddit_word_counts: subreddit_word_counts[1].values().sum())
  .reverse()
  .take(10)
- .for_each(show_subreddit_word_counts))
+ .foreach(show_subreddit_word_counts))
 
 # > AutoNewspaper w/ 2070 total words and 1305 unique words
 # >  herald: 0.02271
