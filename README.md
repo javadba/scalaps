@@ -6,6 +6,8 @@ to learn about using this library.
 
 ## Stephen's Direct from Scala example
 
+Scala version
+
 ```scala
 val a = ((1 to 50)
   .map(_ * 4)
@@ -18,6 +20,8 @@ val a = ((1 to 50)
 
   a: String = Result[0]=20  .. Result[1]=40  .. Result[2]=60  .. Result[3]=80
 ```
+Version using the scalaps library with python
+
 ```python
 from scalaps import *
 a = (Seq(range(1,51))
