@@ -34,7 +34,7 @@ from itertools import chain
 from collections import defaultdict, Counter, deque
 from typing import Callable, Any, Union, Iterable
 
-__all__ = ['Seq', 'SList', 'ScFrozenList', ]
+__all__ = ['Seq', 'SList', 'SFrozenList', ]
 
 CallableTypes = Union[Callable, str, int]
 NoneType = type(None)
@@ -54,15 +54,40 @@ def get_callable(obj: CallableTypes) -> Callable[[Any], Any]:
     else:
         raise TypeError(f"Can't call {obj!r}")
 
+class StrMixin:
+    def __init__(self):
+        pass
 
-class IterableMixin:
+    @staticmethod
+    def listrepr(lst):
+        from typing import Iterable
+        if not lst:
+            return ''
+        elif isinstance(lst,str) or not isinstance(lst, Iterable):
+            return repr(lst)
+        else:
+            return StrMixin.mkstring(lst, ',','[',']')
+
+    @staticmethod
+    def mkstring(lst, between, before='',after=''):
+        if not lst:
+            ret = ''
+        elif isinstance(lst,str) or not isinstance(lst, Iterable):
+            ret = lst
+        else:
+            ret = '%s%s%s' %(before,
+                             between.join([StrMixin.listrepr(x) for x in lst]),
+                             after)
+        return ret
+
+class IterableMixin(StrMixin):
     """Adds some useful Scala-inspired methods for working with iterables"""
-
+    
     def tolist(self) -> 'SList':
         return SList(self)
 
-    def tofrozenlist(self) -> 'ScFrozenList':
-        return ScFrozenList(self)
+    def tofrozenlist(self) -> 'SFrozenList':
+        return SFrozenList(self)
 
     def todict(self) -> 'SDict':
         return SDict(self)
@@ -203,7 +228,10 @@ class IterableMixin:
         return Seq(enumerate(self))
 
     def mkstring(self, between, before='',after=''):
-        return '%s%s%s' %(before,between.join(self),after)
+        return super(StrMixin).mkstring(self,between,before,after)
+
+    def listrepr(self):
+        return super().listrepr(self)
 
 class Seq(IterableMixin):
     """
@@ -212,23 +240,40 @@ class Seq(IterableMixin):
     times.
     """
 
-    def __init__(self, inner_seq: Iterable):
-        self._inner_seq = inner_seq
+    def __init__(self, seq: Iterable):
+        self._seq = seq
         self._ran = False
 
+    def tee(self, foreachfunc):
+        tmpseq = list(iter(self._seq))
+        for x in iter(tmpseq):
+            foreachfunc(x)
+        self._seq = tmpseq.copy()
+        return self
+    
     def __iter__(self):
         if self._ran:
-            raise RuntimeError("Re-running sequence")
+            print("Warning: re-running sequence")
         self._ran = True
         try:
-            return iter(self._inner_seq)
+            return iter(self._seq)
         finally:
             # remove the reference so that we can free up sources in GCing
             # while realizing the rest of the sequence of operations
-            del self._inner_seq
+            # pass
+            del self._seq
+
+    def __repr__(self):
+        return f'{self.__class__.__name__}({self._seq!r})'
+
+    def mkstring(self, between, before='',after=''):
+        return super(IterableMixin,self).mkstring(self._seq,between,before,after)
+
+    def listrepr(self):
+        return super(IterableMixin,self).listrepr(self._seq)
 
 
-class ListMixin:
+class ListMixin(StrMixin):
     def __init__(self, l=()):
         self._list = l
 
@@ -243,7 +288,13 @@ class ListMixin:
         return iter(self._list)
 
     def __repr__(self):
-        return f'{self.__class__.__name__}({self._list!r})'
+        return self.listrepr(self._list)
+
+    def mkstring(self, between, before='',after=''):
+        return super(StrMixin).mkstring(self._list,between,before,after)
+
+    def listrepr(self):
+        return super(StrMixin).listrepr(self._list)
 
 
 class SList(IterableMixin, ListMixin):
@@ -271,8 +322,14 @@ class SList(IterableMixin, ListMixin):
     def __deepcopy__(self, memo=None):
         return SList(copy.deepcopy(x, memo=memo) for x in self._l)
 
+    def mkstring(self, between, before='',after=''):
+        return StrMixin.mkstring(self._list,between,before,after)
 
-class ScFrozenList(IterableMixin, ListMixin):
+    def listrepr(self):
+        return StrMixin.listrepr(self._list)
+
+
+class SFrozenList(IterableMixin, ListMixin):
     """
     Immutable wrapper around Python lists
     """
@@ -325,7 +382,7 @@ class SDict(dict):
             keys = set(self.keys()) | set(other.keys())
         elif how == 'left':
             keys = self.keys()
-        elif howÏ == 'right':
+        elif how == 'right':
             keys = other.keys()
         else:
             raise ValueError(f"Invalid join {how!r}. Must be either inner, outer, left or right")

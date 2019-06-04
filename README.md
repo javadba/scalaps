@@ -29,7 +29,7 @@ a = (Seq(range(1,51))
      .filter(lambda x: x <= 170)
      .filter(lambda x: len(str(x)) == 2)
      .filter( lambda x: x % 20 ==0)
-     .enumerate()
+     .enumerate()                                            Ï
      .map(lambda x: 'Result[%d]=%s' %(x[0],x[1]))
      .mkstring(' .. '))
 print(a)
@@ -51,7 +51,7 @@ from scalaps import Seq
 ```
 
 #### Output
-```
+```Î
 (1, SList([4, 10]))
 (0, SList([6, 12]))
 (2, SList([8]))
