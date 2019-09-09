@@ -1,4 +1,4 @@
-# Ï‰‰‰alaps
+# Scalaps
 See blog post, 
 [Introducing scalaps: Scala-inspired data structures for Python](https://medium.com/@matthagy/introducing-scalaps-scala-inspired-data-structures-for-python-53f3afc8696)
 to learn about using this library.
